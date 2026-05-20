@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-needit-bg: #F7F5EF;
+  --color-needit-green-deep: #0F3D2E;
+  --color-needit-green-sage: #8FAF8D;
+  --color-needit-black: #1F1F1F;
+  --color-needit-gray: #6B6B6B;
+  --color-needit-gray-light: #E8E6DE;
+  --color-needit-positive: #A7C9A4;
+  --color-needit-warning: #F3B08C;
+  
+  --font-inter: 'Inter', sans-serif;
+}
+
+:root {
+  background-color: var(--color-needit-bg);
+  color: var(--color-needit-black);
+  font-family: var(--font-inter);
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base custom styles if needed */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
