@@ -1,6 +1,27 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { ClothingItem, UserStats, CashbackHistoryEntry, PurchaseTestResult } from '../types';
+
+// Wrapper sûr pour éviter le crash de l'iframe si localStorage est bloqué (cookies tiers désactivés)
+const safeStorage = {
+  getItem: (name: string) => {
+    try {
+      return localStorage.getItem(name);
+    } catch (e) {
+      return null;
+    }
+  },
+  setItem: (name: string, value: string) => {
+    try {
+      localStorage.setItem(name, value);
+    } catch (e) {}
+  },
+  removeItem: (name: string) => {
+    try {
+      localStorage.removeItem(name);
+    } catch (e) {}
+  },
+};
 
 interface AppState {
   wardrobe: ClothingItem[];
@@ -117,6 +138,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'needit-storage',
+      storage: createJSONStorage(() => safeStorage),
     }
   )
 );
