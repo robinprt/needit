@@ -39,40 +39,38 @@ export default function TestPurchase() {
         item: formData,
         score: scoreParam === 'A' ? 95 : scoreParam === 'B' ? 80 : scoreParam === 'D' ? 40 : scoreParam === 'E' ? 10 : 60,
         grade: grade,
-        message: "Achat traité via l'extension",
+        message: "Achat via extension",
         date: new Date().toISOString(),
-        status: action === 'valider' ? 'validated' : action === 'attendre' ? 'paused' : 'avoided',
-        potentialCashback: calculateCashback('achat-responsable', formData.price, grade),
+        status: action === 'original' ? 'avoided' : 'validated',
+        potentialCashback: action === 'partenaire' ? 2 : 0,
         imageUrl: formData.imageUrl
       };
       
       addPurchaseTest(testResult);
       
-      if (action === 'valider') {
+      const brand = searchParams.get('brand') || 'Inconnue';
+
+      // Dans tous les cas (original ou partenaire), on l'ajoute au dressing comme demandé : "quand on achete un produit faut que ça le mette automatiquement dans le dressing"
+      if (action === 'partenaire' || action === 'original' || action === 'valider') {
         const newItem: ClothingItem = {
           id: Date.now().toString(),
           name: formData.name || 'Nouveau vêtement',
           category: formData.category,
           color: formData.color,
           price: formData.price,
-          type: formData.type,
+          type: action === 'partenaire' && brand.includes('Seconde Main') ? 'seconde main' : 'neuf',
           condition: 'neuf',
           wornCount: 0,
-          co2Estimate: 15,
-          brand: 'Inconnue',
+          co2Estimate: parseInt(searchParams.get('price') || '30') * 0.45,
+          brand: brand,
           dateAdded: new Date().toISOString(),
           imageUrl: formData.imageUrl
         };
         addClothingItem(newItem);
         
-        const cb = calculateCashback('achat-responsable', formData.price, grade);
-        if (cb > 0) addCashback(cb, 'Achat responsable');
-      } else if (action === 'attendre') {
-        const cb = calculateCashback('attente-24h', formData.price);
-        addCashback(cb, 'Achat mis en pause 24h');
-      } else if (action === 'annuler') {
-        const cb = calculateCashback('achat-evite', formData.price);
-        addCashback(cb, 'Achat impulsif évité');
+        if (action === 'partenaire') {
+          addCashback(2, `Achat alternatif responsable chez ${brand}`);
+        }
       }
 
       navigate('/dashboard', { replace: true });
