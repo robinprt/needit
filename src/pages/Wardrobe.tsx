@@ -98,6 +98,16 @@ export default function Wardrobe() {
                   )}
                 </div>
 
+                {item.imageUrl ? (
+                  <div className="w-full h-48 mb-4 rounded-xl overflow-hidden bg-[#F7F5EF]">
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-full h-48 mb-4 rounded-xl overflow-hidden bg-[#F7F5EF] flex items-center justify-center">
+                    <Shirt size={48} className="text-[#E8E6DE]" />
+                  </div>
+                )}
+
                 <h3 className="font-bold text-lg text-[#1F1F1F] mb-1">{item.name}</h3>
                 <p className="text-[#6B6B6B] text-sm mb-4">{item.brand} • {item.price} €</p>
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, CheckCircle2, PauseCircle, Shirt } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
@@ -8,13 +8,15 @@ import type { ClothingCategory, ClothingItem, PurchaseTestResult, ScoreGrade } f
 
 export default function TestPurchase() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { wardrobe, addPurchaseTest, updatePurchaseStatus, addCashback, addClothingItem } = useAppStore();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
+    name: searchParams.get('name') || '',
     category: 't-shirt' as ClothingCategory,
     color: '',
-    price: 0,
+    price: Number(searchParams.get('price')) || 0,
+    imageUrl: searchParams.get('img') || '',
     type: 'neuf' as 'neuf' | 'seconde main',
     occasion: 'besoin',
     realNeed: 'oui' as 'oui' | 'peut-etre' | 'non',
@@ -25,6 +27,57 @@ export default function TestPurchase() {
   const [result, setResult] = useState<{score: number, grade: ScoreGrade, message: string} | null>(null);
   const [duplicates, setDuplicates] = useState<ClothingItem[]>([]);
   const [savedPurchaseId, setSavedPurchaseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action) {
+      const scoreParam = searchParams.get('score');
+      const grade = (scoreParam || 'C') as ScoreGrade;
+      
+      const testResult: PurchaseTestResult = {
+        id: Date.now().toString(),
+        item: formData,
+        score: scoreParam === 'A' ? 95 : scoreParam === 'B' ? 80 : scoreParam === 'D' ? 40 : scoreParam === 'E' ? 10 : 60,
+        grade: grade,
+        message: "Achat traité via l'extension",
+        date: new Date().toISOString(),
+        status: action === 'valider' ? 'validated' : action === 'attendre' ? 'paused' : 'avoided',
+        potentialCashback: calculateCashback('achat-responsable', formData.price, grade),
+        imageUrl: formData.imageUrl
+      };
+      
+      addPurchaseTest(testResult);
+      
+      if (action === 'valider') {
+        const newItem: ClothingItem = {
+          id: Date.now().toString(),
+          name: formData.name || 'Nouveau vêtement',
+          category: formData.category,
+          color: formData.color,
+          price: formData.price,
+          type: formData.type,
+          condition: 'neuf',
+          wornCount: 0,
+          co2Estimate: 15,
+          brand: 'Inconnue',
+          dateAdded: new Date().toISOString(),
+          imageUrl: formData.imageUrl
+        };
+        addClothingItem(newItem);
+        
+        const cb = calculateCashback('achat-responsable', formData.price, grade);
+        if (cb > 0) addCashback(cb, 'Achat responsable');
+      } else if (action === 'attendre') {
+        const cb = calculateCashback('attente-24h', formData.price);
+        addCashback(cb, 'Achat mis en pause 24h');
+      } else if (action === 'annuler') {
+        const cb = calculateCashback('achat-evite', formData.price);
+        addCashback(cb, 'Achat impulsif évité');
+      }
+
+      navigate('/dashboard', { replace: true });
+    }
+  }, []);
 
   const handleNext = () => setStep(s => s + 1);
 
@@ -51,7 +104,8 @@ export default function TestPurchase() {
       message: scoreResult.message,
       date: new Date().toISOString(),
       status: 'pending',
-      potentialCashback: calculateCashback('achat-responsable', formData.price, scoreResult.grade)
+      potentialCashback: calculateCashback('achat-responsable', formData.price, scoreResult.grade),
+      imageUrl: formData.imageUrl
     };
     addPurchaseTest(testResult);
     setSavedPurchaseId(testResult.id);
@@ -86,7 +140,8 @@ export default function TestPurchase() {
         wornCount: 0,
         co2Estimate: 15,
         brand: 'Inconnue',
-        dateAdded: new Date().toISOString()
+        dateAdded: new Date().toISOString(),
+        imageUrl: formData.imageUrl
       };
       addClothingItem(newItem);
       

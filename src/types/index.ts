@@ -15,6 +15,7 @@ export interface ClothingItem {
   type: ClothingType;
   wornCount: number;
   co2Estimate: number;
+  imageUrl?: string;
 }
 
 export interface PurchaseTestResult {
@@ -26,6 +27,7 @@ export interface PurchaseTestResult {
   date: string;
   status: 'validated' | 'paused' | 'cancelled' | 'avoided' | 'pending';
   potentialCashback: number;
+  imageUrl?: string;
 }
 
 export interface CashbackHistoryEntry {
